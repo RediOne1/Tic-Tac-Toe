@@ -19,80 +19,120 @@ import java.util.List;
  * Use the {@link GameFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class GameFragment extends Fragment implements View.OnClickListener {
-	// TODO: Rename parameter arguments, choose names that match
-	// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-	private static final String PLAYERS_NUMBER = "param1";
+public class GameFragment extends Fragment implements View.OnClickListener, OnGameResultListener {
+    // TODO: Rename parameter arguments, choose names that match
+    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+    private static final String PLAYERS_NUMBER = "param1";
+    public static String PLAYER_1 = "X";
+    public static String PLAYER_2 = "O";
+    public static List<TextView> fields = new ArrayList<>();
+    public static boolean player_1 = true;
+    private static List<Integer> fieldsIds = Arrays.asList(R.id.field1, R.id.field2, R.id.field3,
+            R.id.field4, R.id.field5, R.id.field6,
+            R.id.field7, R.id.field8, R.id.field9);
+    // TODO: Rename and change types of parameters
+    private int mPlayersNumber;
+    private OnSymbolSetListener onSymbolSetListener;
+    private TextView resetButton, playerX, playerO;
+    private int pointX = 0, pointY = 0;
 
-	// TODO: Rename and change types of parameters
-	private int mPlayersNumber;
+    public GameFragment() {
+        // Required empty public constructor
+    }
 
-	private List<Integer> fieldsIds = Arrays.asList(R.id.field1, R.id.field2, R.id.field3,
-		                                                R.id.field4, R.id.field5, R.id.field6,
-		                                                R.id.field7, R.id.field8, R.id.field9);
-	private List<TextView> fields = new ArrayList<TextView>();
+    /**
+     * Use this factory method to create a new instance of
+     * this fragment using the provided parameters.
+     *
+     * @param playersNumber Number of players.
+     * @return A new instance of fragment GameFragment.
+     */
+    // TODO: Rename and change types and number of parameters
+    public static GameFragment newInstance(int playersNumber) {
+        GameFragment fragment = new GameFragment();
+        Bundle args = new Bundle();
+        args.putInt(PLAYERS_NUMBER, playersNumber);
+        fragment.setArguments(args);
+        return fragment;
+    }
 
-	private boolean cross = true;
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Utils utils = new Utils();
+        utils.setOnGameResultListener(this);
+        onSymbolSetListener = (OnSymbolSetListener) utils;
+        if (getArguments() != null) {
+            mPlayersNumber = getArguments().getInt(PLAYERS_NUMBER);
+        }
+    }
 
-	public GameFragment() {
-		// Required empty public constructor
-	}
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_game, container, false);
+    }
 
-	/**
-	 * Use this factory method to create a new instance of
-	 * this fragment using the provided parameters.
-	 *
-	 * @param playersNumber Number of players.
-	 * @return A new instance of fragment GameFragment.
-	 */
-	// TODO: Rename and change types and number of parameters
-	public static GameFragment newInstance(int playersNumber) {
-		GameFragment fragment = new GameFragment();
-		Bundle args = new Bundle();
-		args.putInt(PLAYERS_NUMBER, playersNumber);
-		fragment.setArguments(args);
-		return fragment;
-	}
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        resetButton = (TextView) view.findViewById(R.id.reset_button);
+        resetButton.setOnClickListener(this);
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		if (getArguments() != null) {
-			mPlayersNumber = getArguments().getInt(PLAYERS_NUMBER);
-		}
-	}
+        playerX = (TextView) view.findViewById(R.id.playerX);
+        playerO = (TextView) view.findViewById(R.id.playerO);
+        updatePoints();
+        for (int id : fieldsIds) {
+            TextView tv = (TextView) view.findViewById(id);
+            tv.setOnClickListener(this);
+            fields.add(tv);
+        }
+    }
 
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-	                         Bundle savedInstanceState) {
-		// Inflate the layout for this fragment
-		return inflater.inflate(R.layout.fragment_game, container, false);
-	}
+    private void setSymbol(TextView textView) {
+        textView.setText(player_1 ? PLAYER_1 : PLAYER_2);
+        player_1 = !player_1;
+    }
 
-	@Override
-	public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
-		if (fields.size() != fieldsIds.size())
-			for (int id : fieldsIds) {
-				TextView textView = (TextView) view.findViewById(id);
-				textView.setOnClickListener(this);
-				fields.add(textView);
-			}
-	}
+    private void resetGame() {
+        for (TextView textView : fields)
+            textView.setText("");
+    }
 
-	private void setField(TextView textView) {
-		if (cross)
-			textView.setText("X");
-		else
-			textView.setText("O");
-		cross = !cross;
-	}
+    @Override
+    public void onClick(View v) {
+        if (v == resetButton) {
+            player_1 = true;
+            pointX = 0;
+            pointY = 0;
+            updatePoints();
+            resetGame();
+        } else if (v instanceof TextView) {
+            if (((TextView) v).getText().toString().equals(""))
+                setSymbol((TextView) v);
+            onSymbolSetListener.onSymbolSet();
+        }
+    }
 
-	@Override
-	public void onClick(View v) {
-		if (fieldsIds.contains(v.getId())) {
-			Toast.makeText(getActivity(), "" + fields.indexOf(v), Toast.LENGTH_SHORT).show();
-			setField((TextView) v);
-		}
-	}
+    private void updatePoints() {
+        playerX.setText(String.format(getString(R.string.playerX), "" + pointX));
+        playerO.setText(String.format(getString(R.string.playerO), "" + pointY));
+    }
+
+    @Override
+    public void onGameEnd(int result) {
+        if (result == Utils.PLAYER_1_WON) {
+            pointX++;
+            Toast.makeText(getActivity(), "Player X won!", Toast.LENGTH_SHORT).show();
+        }
+        if (result == Utils.PLAYER_2_WON) {
+            pointY++;
+            Toast.makeText(getActivity(), "Player O won!", Toast.LENGTH_SHORT).show();
+        }
+        if (result == Utils.DRAW)
+            Toast.makeText(getActivity(), "Draw!", Toast.LENGTH_SHORT).show();
+        updatePoints();
+        resetGame();
+    }
 }
