@@ -32,6 +32,7 @@ public class Utils implements OnSymbolSetListener {
                 onGameResultListener.onGameEnd(PLAYER_1_WON);
             else
                 onGameResultListener.onGameEnd(PLAYER_2_WON);
+            return;
         }
         int n = GameFragment.fields.size();
         for (int i = 0; i < n; i++)

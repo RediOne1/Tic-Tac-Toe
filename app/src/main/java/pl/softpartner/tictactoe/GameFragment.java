@@ -31,8 +31,10 @@ public class GameFragment extends Fragment implements View.OnClickListener, OnGa
             R.id.field4, R.id.field5, R.id.field6,
             R.id.field7, R.id.field8, R.id.field9);
     // TODO: Rename and change types of parameters
-    private int mPlayersNumber;
-    private OnSymbolSetListener onSymbolSetListener;
+    private static int mPlayersNumber;
+    private static OnSymbolSetListener onSymbolSetListener;
+    private static boolean endGame = false;
+    public static int turnNumber = 1;
     private TextView resetButton, playerX, playerO;
     private int pointX = 0, pointY = 0;
 
@@ -56,6 +58,15 @@ public class GameFragment extends Fragment implements View.OnClickListener, OnGa
         return fragment;
     }
 
+    public static void setSymbol(TextView textView) {
+        textView.setText(player_1 ? PLAYER_1 : PLAYER_2);
+        player_1 = !player_1;
+        onSymbolSetListener.onSymbolSet();
+        if (!endGame && !player_1 && mPlayersNumber == 1) {
+            Bot.makeTurn();
+        }
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,7 +74,7 @@ public class GameFragment extends Fragment implements View.OnClickListener, OnGa
         utils.setOnGameResultListener(this);
         onSymbolSetListener = (OnSymbolSetListener) utils;
         if (getArguments() != null) {
-            mPlayersNumber = getArguments().getInt(PLAYERS_NUMBER);
+            mPlayersNumber = getArguments().getInt(PLAYERS_NUMBER, 1);
         }
     }
 
@@ -90,18 +101,22 @@ public class GameFragment extends Fragment implements View.OnClickListener, OnGa
         }
     }
 
-    private void setSymbol(TextView textView) {
-        textView.setText(player_1 ? PLAYER_1 : PLAYER_2);
-        player_1 = !player_1;
-    }
-
     private void resetGame() {
         for (TextView textView : fields)
             textView.setText("");
+        turnNumber = 1;
+        if (!endGame && !player_1 && mPlayersNumber == 1) {
+            Bot.makeTurn();
+        }
     }
 
     @Override
     public void onClick(View v) {
+        if (endGame == true) {
+            endGame = false;
+            resetGame();
+            return;
+        }
         if (v == resetButton) {
             player_1 = true;
             pointX = 0;
@@ -111,8 +126,11 @@ public class GameFragment extends Fragment implements View.OnClickListener, OnGa
         } else if (v instanceof TextView) {
             if (((TextView) v).getText().toString().equals(""))
                 setSymbol((TextView) v);
-            onSymbolSetListener.onSymbolSet();
         }
+    }
+
+    private void botTurn() {
+
     }
 
     private void updatePoints() {
@@ -122,6 +140,7 @@ public class GameFragment extends Fragment implements View.OnClickListener, OnGa
 
     @Override
     public void onGameEnd(int result) {
+        endGame = true;
         if (result == Utils.PLAYER_1_WON) {
             pointX++;
             Toast.makeText(getActivity(), "Player X won!", Toast.LENGTH_SHORT).show();
@@ -133,6 +152,5 @@ public class GameFragment extends Fragment implements View.OnClickListener, OnGa
         if (result == Utils.DRAW)
             Toast.makeText(getActivity(), "Draw!", Toast.LENGTH_SHORT).show();
         updatePoints();
-        resetGame();
     }
 }
