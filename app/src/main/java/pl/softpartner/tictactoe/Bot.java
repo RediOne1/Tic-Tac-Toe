@@ -17,7 +17,6 @@ public class Bot {
     private static int lastPosition;
 
     public static void makeTurn() {
-        Log.e("DEBUG_TAG", "" + GameFragment.turnNumber);
         switch (GameFragment.turnNumber) {
             case 1:
                 setRandomEmptyCorner();
