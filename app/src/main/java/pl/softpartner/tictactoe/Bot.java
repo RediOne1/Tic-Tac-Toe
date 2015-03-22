@@ -1,5 +1,6 @@
 package pl.softpartner.tictactoe;
 
+import android.util.Log;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ public class Bot {
     private static int lastPosition;
 
     public static void makeTurn() {
+        Log.e("DEBUG_TAG", "" + GameFragment.turnNumber);
         switch (GameFragment.turnNumber) {
             case 1:
                 setRandomEmptyCorner();
@@ -95,25 +97,30 @@ public class Bot {
     private static boolean tryBlockFinish(int position1, int position2, int position3) {
         List<String> positions = new LinkedList<String>(Arrays.asList("" + position1, "" + position2, "" + position3));
         int emptyPositionsCount = 0;
+        int emptyPosition = 0;
         if (getSymbol(position1).equals("")) {
             emptyPositionsCount++;
+            emptyPosition = position1;
             positions.remove("" + position1);
         }
         if (getSymbol(position2).equals("")) {
             emptyPositionsCount++;
+            emptyPosition = position2;
             positions.remove("" + position2);
         }
         if (getSymbol(position3).equals("")) {
             emptyPositionsCount++;
+            emptyPosition = position3;
             positions.remove("" + position3);
         }
 
         if (emptyPositionsCount != 1)
             return false;
         if (getSymbol(Integer.parseInt(positions.get(0))).equals(getSymbol(Integer.parseInt(positions.get(1))))) {
-            setSymbol(emptyPositionsCount);
+            setSymbol(emptyPosition);
+            return true;
         }
-        return true;
+        return false;
     }
 
     private static String getSymbol(int position) {

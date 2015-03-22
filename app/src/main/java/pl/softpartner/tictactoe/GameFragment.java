@@ -27,6 +27,7 @@ public class GameFragment extends Fragment implements View.OnClickListener, OnGa
     public static String PLAYER_2 = "O";
     public static List<TextView> fields = new ArrayList<>();
     public static boolean player_1 = true;
+    public static int turnNumber = 1;
     private static List<Integer> fieldsIds = Arrays.asList(R.id.field1, R.id.field2, R.id.field3,
             R.id.field4, R.id.field5, R.id.field6,
             R.id.field7, R.id.field8, R.id.field9);
@@ -34,7 +35,6 @@ public class GameFragment extends Fragment implements View.OnClickListener, OnGa
     private static int mPlayersNumber;
     private static OnSymbolSetListener onSymbolSetListener;
     private static boolean endGame = false;
-    public static int turnNumber = 1;
     private TextView resetButton, playerX, playerO;
     private int pointX = 0, pointY = 0;
 
@@ -62,6 +62,7 @@ public class GameFragment extends Fragment implements View.OnClickListener, OnGa
         textView.setText(player_1 ? PLAYER_1 : PLAYER_2);
         player_1 = !player_1;
         onSymbolSetListener.onSymbolSet();
+        turnNumber++;
         if (!endGame && !player_1 && mPlayersNumber == 1) {
             Bot.makeTurn();
         }
@@ -124,8 +125,9 @@ public class GameFragment extends Fragment implements View.OnClickListener, OnGa
             updatePoints();
             resetGame();
         } else if (v instanceof TextView) {
-            if (((TextView) v).getText().toString().equals(""))
+            if (((TextView) v).getText().toString().equals("")) {
                 setSymbol((TextView) v);
+            }
         }
     }
 
